@@ -13,10 +13,9 @@ import android.provider.Settings
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
-import android.widget.Button
-import android.widget.TextView
 import android.widget.Toast
 import com.google.android.gms.location.*
+import kotlinx.android.synthetic.main.activity_main.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -25,15 +24,11 @@ class MainActivity : AppCompatActivity() {
     private var mFusedLocationProviderClient: FusedLocationProviderClient? = null
     private val INTERVAL: Long = 2000
     private val FASTEST_INTERVAL: Long = 1000
-    lateinit var mLastLocation: Location
-    internal lateinit var mLocationRequest: LocationRequest
+    private lateinit var mLastLocation: Location
+    private lateinit var mLocationRequest: LocationRequest
     private val REQUEST_PERMISSION_LOCATION = 10
 
-    lateinit var btnStartupdate: Button
-    lateinit var btnStopUpdates: Button
-    lateinit var txtLat: TextView
-    lateinit var txtLong: TextView
-    lateinit var txtTime: TextView
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,11 +36,7 @@ class MainActivity : AppCompatActivity() {
 
         mLocationRequest = LocationRequest()
 
-        btnStartupdate = findViewById(R.id.btn_start_upds)
-        btnStopUpdates = findViewById(R.id.btn_stop_upds)
-        txtLat = findViewById(R.id.txtLat);
-        txtLong = findViewById(R.id.txtLong);
-        txtTime = findViewById(R.id.txtTime);
+
 
         val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
@@ -53,19 +44,19 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-        btnStartupdate.setOnClickListener {
+        btn_start_upds.setOnClickListener {
             if (checkPermissionForLocation(this)) {
                 startLocationUpdates()
-                btnStartupdate.isEnabled = false
-                btnStopUpdates.isEnabled = true
+                btn_start_upds.isEnabled = false
+                btn_stop_upds.isEnabled = true
             }
         }
 
-        btnStopUpdates.setOnClickListener {
-            stoplocationUpdates()
-            txtTime.text = "Updates Stoped"
-            btnStartupdate.isEnabled = true
-            btnStopUpdates.isEnabled = false
+        btn_stop_upds.setOnClickListener {
+            stopLocationUpdates()
+            txtTime.text = "Updates Stopped"
+            btn_start_upds.isEnabled = true
+            btn_stop_upds.isEnabled = false
         }
 
     }
@@ -75,11 +66,11 @@ class MainActivity : AppCompatActivity() {
         val builder = AlertDialog.Builder(this)
         builder.setMessage("Your GPS seems to be disabled, do you want to enable it?")
                 .setCancelable(false)
-                .setPositiveButton("Yes") { dialog, id ->
+                .setPositiveButton("Yes") { _, _ ->
                     startActivityForResult(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                             , 11)
                 }
-                .setNegativeButton("No") { dialog, id ->
+                .setNegativeButton("No") { dialog, _ ->
                     dialog.cancel()
                     finish()
                 }
@@ -90,17 +81,17 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    protected fun startLocationUpdates() {
+     private fun startLocationUpdates() {
 
         // Create the location request to start receiving updates
 
-        mLocationRequest!!.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        mLocationRequest!!.setInterval(INTERVAL)
-        mLocationRequest!!.setFastestInterval(FASTEST_INTERVAL)
+        mLocationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        mLocationRequest.interval = INTERVAL
+        mLocationRequest.fastestInterval = FASTEST_INTERVAL
 
         // Create LocationSettingsRequest object using location request
         val builder = LocationSettingsRequest.Builder()
-        builder.addLocationRequest(mLocationRequest!!)
+        builder.addLocationRequest(mLocationRequest)
         val locationSettingsRequest = builder.build()
 
         val settingsClient = LocationServices.getSettingsClient(this)
@@ -137,7 +128,7 @@ class MainActivity : AppCompatActivity() {
         // You can now create a LatLng Object for use with maps
     }
 
-    private fun stoplocationUpdates() {
+    private fun stopLocationUpdates() {
         mFusedLocationProviderClient!!.removeLocationUpdates(mLocationCallback)
     }
 
@@ -146,15 +137,15 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == REQUEST_PERMISSION_LOCATION) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 startLocationUpdates()
-                btnStartupdate.isEnabled = false
-                btnStopUpdates.isEnabled = true
+                btn_start_upds.isEnabled = false
+                btn_stop_upds.isEnabled = true
             } else {
-                Toast.makeText(this@MainActivity, "Permission Denied", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    fun checkPermissionForLocation(context: Context): Boolean {
+    private fun checkPermissionForLocation(context: Context): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
             if (context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) ==
@@ -162,7 +153,7 @@ class MainActivity : AppCompatActivity() {
                 true
             } else {
                 // Show the permission request
-                ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                         REQUEST_PERMISSION_LOCATION)
                 false
             }
